@@ -120,6 +120,17 @@ public class characterShift : MonoBehaviour {
     void trySubmit()
     {
         Debug.LogFormat("[Character Shift #{0}] Attempting to submit solution: {1}, {2}.", _moduleId, letters[currentLetDis], numbers[currentNumDis]);
+        
+        if(currentLetDis == 0 || currentNumDis == 0)
+        {
+            Debug.LogFormat("[Character Shift #{0}] Strike with solution: {1}, {2}.", _moduleId, letters[currentLetDis], numbers[currentNumDis]);
+            module.HandleStrike();
+            currentNumDis = 0;
+            currentLetDis = 0;
+            DisplayScreen();
+            return;
+        }
+
         string currentLetter = letters[currentLetDis];
         int currentNumber = Int32.Parse(numbers[currentNumDis]);
 
