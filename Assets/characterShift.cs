@@ -523,7 +523,6 @@ public class characterShift : MonoBehaviour {
             string submit = split[1];
             string letter = submit.ToCharArray()[0].ToString();
             string number = submit.ToCharArray()[1].ToString();
-            yield return "sendtochat attempting to submit " + letter + number;
             if (letters.Contains(letter) && numbers.Contains(number))
             {
                 while (!letters[currentLetDis].Equals(letter))
@@ -537,12 +536,8 @@ public class characterShift : MonoBehaviour {
                 trySubmit();
             } else
             {
-                yield return "sendtochat can't submit " + letter + number;
+                yield return "sendtochat Can't submit " + letter + number;
             }
-        }
-        else
-        {
-            yield return "sendtochat invalid command";
         }
     }
 
