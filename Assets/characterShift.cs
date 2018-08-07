@@ -139,7 +139,10 @@ public class characterShift : MonoBehaviour {
             Debug.LogFormat("[Character Shift #{0}] Solved with solution: {1}, {2}. Letter: {3}.", _moduleId, letters[currentLetDis], numbers[currentNumDis], submitted);
             module.HandlePass();
             _isSolved = true;
-        } else
+            newAudio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.CorrectChime, letUp.transform);
+
+        }
+        else
         {
             Debug.LogFormat("[Character Shift #{0}] Strike with solution: {1}, {2}. Letter: {3}.", _moduleId, letters[currentLetDis], numbers[currentNumDis], submitted);
             module.HandleStrike();
