@@ -13,7 +13,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: characterShift
   title: Character Shift
-  description: 
+  description: 'Manual links coming soon
+
+
+
+    id: characterShift
+
+
+    Module Idea and Manual: Vantastic
+
+    Module Model and Code: AAces'
   version: 1.0
   outputFolder: build
   previewImage: {fileID: 0}

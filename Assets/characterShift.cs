@@ -155,16 +155,9 @@ public class characterShift : MonoBehaviour {
     void Init()
     {
         serialLetters = info.GetSerialNumberLetters().ToArray();
-        x = info.GetPortCount();
-        foreach(Char letter in serialLetters)
-        {
-            x += getNumber(letter.ToString());
-        }
-        y = info.GetIndicators().Count();
-        foreach(int i in info.GetSerialNumberNumbers().ToArray())
-        {
-            y += i;
-        }
+        x = info.GetPortCount() + serialLetters.Count();
+        y = info.GetIndicators().Count() + info.GetSerialNumberNumbers().Count();
+
         SetupLettersNumbers();
         DisplayScreen();
         StartCoroutine(MainSystem());
