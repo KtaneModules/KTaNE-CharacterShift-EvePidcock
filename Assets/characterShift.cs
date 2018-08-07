@@ -143,6 +143,9 @@ public class characterShift : MonoBehaviour {
         {
             Debug.LogFormat("[Character Shift #{0}] Strike with solution: {1}, {2}. Letter: {3}.", _moduleId, letters[currentLetDis], numbers[currentNumDis], submitted);
             module.HandleStrike();
+            currentNumDis = 0;
+            currentLetDis = 0;
+            DisplayScreen();
         }
     }
 
@@ -431,7 +434,7 @@ public class characterShift : MonoBehaviour {
         {
             yield return new WaitForSeconds(0.1f);
             int last = (int)(info.GetTime() % 10);
-            if(last == 3)
+            if(last == 3 && !_isSolved)
             {
                 submit = false;
                 switch (info.GetStrikes())
@@ -504,6 +507,43 @@ public class characterShift : MonoBehaviour {
             }
         }
         LED.material = LEDOff;   
+    }
+#pragma warning disable 414
+
+    private string TwitchHelpMessage = "Submit A4 with !submit A4";
+
+#pragma warning restore 414
+    IEnumerator ProcessTwitchCommand(string input)
+    {
+        Regex rgx = new Regex(@"^(submit) [A-Z][0-9]$");
+        if (rgx.IsMatch(input))
+        {
+            string[] split = input.ToUpperInvariant().Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries);
+            yield return null;
+            string submit = split[1];
+            string letter = submit.ToCharArray()[0].ToString();
+            string number = submit.ToCharArray()[1].ToString();
+            yield return "sendtochat attempting to submit " + letter + number;
+            if (letters.Contains(letter) && numbers.Contains(number))
+            {
+                while (!letters[currentLetDis].Equals(letter))
+                {
+                    handleLetUp();
+                }
+                while (!numbers[currentNumDis].Equals(number))
+                {
+                    handleNumUp();
+                }
+                trySubmit();
+            } else
+            {
+                yield return "sendtochat can't submit " + letter + number;
+            }
+        }
+        else
+        {
+            yield return "sendtochat invalid command";
+        }
     }
 
 }
