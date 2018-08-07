@@ -139,6 +139,10 @@ public class characterShift : MonoBehaviour {
             Debug.LogFormat("[Character Shift #{0}] Solved with solution: {1}, {2}. Letter: {3}.", _moduleId, letters[currentLetDis], numbers[currentNumDis], submitted);
             module.HandlePass();
             _isSolved = true;
+        } else
+        {
+            Debug.LogFormat("[Character Shift #{0}] Strike with solution: {1}, {2}. Letter: {3}.", _moduleId, letters[currentLetDis], numbers[currentNumDis], submitted);
+            module.HandleStrike();
         }
     }
 
@@ -420,6 +424,7 @@ public class characterShift : MonoBehaviour {
 
     private IEnumerator MainSystem()
     {
+        bool submit = false;
         yield return new WaitForSeconds(0.2f);
         Debug.LogFormat("[Character Shift #{0}] Main Coroutine started.", _moduleId);
         while (!_isSolved)
@@ -428,6 +433,7 @@ public class characterShift : MonoBehaviour {
             int last = (int)(info.GetTime() % 10);
             if(last == 3)
             {
+                submit = false;
                 switch (info.GetStrikes())
                 {
                     case 0:
@@ -489,8 +495,9 @@ public class characterShift : MonoBehaviour {
                 }
             } else if(last == 1)
             {
-                if (currentLetDis != 0 && currentNumDis != 0 && !_isSolved)
+                if (currentLetDis != 0 && currentNumDis != 0 && !_isSolved && !submit)
                 {
+                    submit = true;
                     trySubmit();
                 }
                 LED.material = LEDOff;
