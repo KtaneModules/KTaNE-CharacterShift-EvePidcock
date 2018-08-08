@@ -17,6 +17,8 @@ public class characterShift : MonoBehaviour {
     private int _moduleId = 0;
     private bool _isSolved = false, _lightsOn = false;
 
+    private bool TwitchPlaysActive = false;
+
     public KMSelectable numUp, numDown, letUp, letDown;
 
     public TextMesh numberText, letterText;
@@ -437,7 +439,7 @@ public class characterShift : MonoBehaviour {
         bool submit = false;
         yield return new WaitForSeconds(0.2f);
         Debug.LogFormat("[Character Shift #{0}] Main Coroutine started.", _moduleId);
-        while (!_isSolved)
+        while (!_isSolved && !TwitchPlaysActive)
         {
             yield return new WaitForSeconds(0.1f);
             int last = (int)(info.GetTime() % 10);
@@ -505,7 +507,7 @@ public class characterShift : MonoBehaviour {
                 }
             } else if(last == 1)
             {
-                if (currentLetDis != 0 && currentNumDis != 0 && !_isSolved && !submit)
+                if ((currentLetDis != 0 || currentNumDis != 0 )&& !_isSolved && !submit)
                 {
                     submit = true;
                     trySubmit();
@@ -517,12 +519,14 @@ public class characterShift : MonoBehaviour {
     }
 #pragma warning disable 414
 
-    private string TwitchHelpMessage = "Submit A4 with !submit A4";
+    private string TwitchHelpMessage = "Submit A4 with !submit A4, cycle through the numbers and letters with !{0} cycle, or just one with !{0} cycle letters or !{0} cycle numbers";
 
 #pragma warning restore 414
     IEnumerator ProcessTwitchCommand(string input)
     {
         Regex rgx = new Regex(@"^(submit) [A-Z][0-9]$");
+        Regex cycle = new Regex(@"^(cycle)$");
+        Regex cycleSpec = new Regex(@"^(cycle) (numbers|letters)$");
         if (rgx.IsMatch(input))
         {
             string[] split = input.ToUpperInvariant().Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries);
@@ -544,6 +548,56 @@ public class characterShift : MonoBehaviour {
             } else
             {
                 yield return "sendtochat Can't submit " + letter + number;
+            }
+        } else if (cycle.IsMatch(input.ToLowerInvariant()))
+        {
+            yield return new WaitForSeconds(0.25f);
+            handleLetUp();
+            yield return new WaitForSeconds(0.75f);
+            handleLetUp();
+            yield return new WaitForSeconds(0.75f);
+            handleLetUp();
+            yield return new WaitForSeconds(0.75f);
+            handleLetUp();
+            yield return new WaitForSeconds(0.75f);
+            handleLetUp();
+            yield return new WaitForSeconds(0.75f);
+            handleNumUp();
+            yield return new WaitForSeconds(0.75f);
+            handleNumUp();
+            yield return new WaitForSeconds(0.75f);
+            handleNumUp();
+            yield return new WaitForSeconds(0.75f);
+            handleNumUp();
+            yield return new WaitForSeconds(0.75f);
+            handleNumUp();
+
+        } else if (cycleSpec.IsMatch(input.ToLowerInvariant()))
+        {
+            if(input.ToLowerInvariant().Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries)[1].Equals("letters"))
+            {
+                yield return new WaitForSeconds(0.25f);
+                handleLetUp();
+                yield return new WaitForSeconds(0.75f);
+                handleLetUp();
+                yield return new WaitForSeconds(0.75f);
+                handleLetUp();
+                yield return new WaitForSeconds(0.75f);
+                handleLetUp();
+                yield return new WaitForSeconds(0.75f);
+                handleLetUp();
+            } else
+            {
+                yield return new WaitForSeconds(0.25f);
+                handleNumUp();
+                yield return new WaitForSeconds(0.75f);
+                handleNumUp();
+                yield return new WaitForSeconds(0.75f);
+                handleNumUp();
+                yield return new WaitForSeconds(0.75f);
+                handleNumUp();
+                yield return new WaitForSeconds(0.75f);
+                handleNumUp();
             }
         }
     }
