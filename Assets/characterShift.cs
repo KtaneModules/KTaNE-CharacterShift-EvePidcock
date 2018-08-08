@@ -254,13 +254,42 @@ public class characterShift : MonoBehaviour {
         {
             garInt += 26;
         }
-        for(int i = 1; i < 5; i++)
+        letters[1] = getLetter(Random.Range(1, 27));
+        do
         {
-            letters[i] = getLetter(Random.Range(1, 27));
-            numbers[i] = Random.Range(0, 10).ToString();
+            letters[2] = getLetter(Random.Range(1, 27));
+        } while (letters[2]==letters[1]);
+        do
+        {
+            letters[3] = getLetter(Random.Range(1, 27));
+        } while (letters[3] == letters[1] || letters[3] == letters[2]);
+        do
+        {
+            letters[4] = getLetter(Random.Range(1, 27));
+        } while (letters[4] == letters[1] || letters[4] == letters[2] || letters[4]==letters[3]);
+
+        numbers[1] = Random.Range(0, 10).ToString();
+        do
+        {
+            numbers[2] = Random.Range(0, 10).ToString();
+        } while (numbers[2] == numbers[1]);
+        do
+        {
+            numbers[3] = Random.Range(0, 10).ToString();
+        } while (numbers[3] == numbers[1] || numbers[3] == numbers[2]);
+        do
+        {
+            numbers[4] = Random.Range(0, 10).ToString();
+        } while (numbers[4] == numbers[1] || numbers[4] == numbers[2] || numbers[4] == numbers[3]);
+
+        if (!letters.Contains(getLetter(garInt)))
+        {
+            letters[Random.Range(1, 5)] = getLetter(garInt);
         }
-        letters[Random.Range(1, 5)] = getLetter(garInt);
-        numbers[Random.Range(1, 5)] = op.ToString();
+        if (!numbers.Contains(op.ToString()))
+        {
+            numbers[Random.Range(1, 5)] = op.ToString();
+        }
     }
 
     int functions(int c, int let)

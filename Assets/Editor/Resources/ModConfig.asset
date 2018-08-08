@@ -13,16 +13,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: characterShift
   title: Character Shift
-  description: 'Manual links coming soon
-
-
-
-    id: characterShift
-
-
-    Module Idea and Manual: Vantastic
-
-    Module Model and Code: AAces'
+  description: "Manual HTML: https://ktane.timwi.de/HTML/Character%20Shift.html\r\nManual
+    PDF: https://ktane.timwi.de/PDF/Character%20Shift.pdf\r\n\r\nid: characterShift\r\n\r\nModule
+    Idea and Manual: Vantastic\r\nModule Model and Code: AAces"
   version: 1.0
   outputFolder: build
   previewImage: {fileID: 2800000, guid: 232de41ca779848488539a0882286aec, type: 3}
