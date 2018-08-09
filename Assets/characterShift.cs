@@ -541,6 +541,9 @@ public class characterShift : MonoBehaviour {
                     submit = true;
                     trySubmit();
                 }
+                
+            } else if(last == 0 || last == 9)
+            {
                 LED.material = LEDOff;
             }
         }
@@ -548,86 +551,95 @@ public class characterShift : MonoBehaviour {
     }
 #pragma warning disable 414
 
-    private string TwitchHelpMessage = "Submit A4 with !submit A4, cycle through the numbers and letters with !{0} cycle, or just one with !{0} cycle letters or !{0} cycle numbers";
+    private string TwitchHelpMessage = "Submit A4 with !{0} submit A4, cycle through the numbers and letters with !{0} cycle, or just one with !{0} cycle letters or !{0} cycle numbers.";
 
 #pragma warning restore 414
     IEnumerator ProcessTwitchCommand(string input)
     {
-        Regex rgx = new Regex(@"^(submit) [A-Z][0-9]$");
-        Regex cycle = new Regex(@"^(cycle)$");
-        Regex cycleSpec = new Regex(@"^(cycle) (numbers|letters)$");
-        if (rgx.IsMatch(input))
+        string[] split = input.ToUpperInvariant().Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries);
+        if (split[0].Equals("SUBMIT"))
         {
-            string[] split = input.ToUpperInvariant().Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries);
-            yield return null;
+            if(split.Length != 2) { yield break; }
+            if(split[1].Length != 2) { yield break; }
             string submit = split[1];
             string letter = submit.ToCharArray()[0].ToString();
             string number = submit.ToCharArray()[1].ToString();
             if (letters.Contains(letter) && numbers.Contains(number))
             {
+                yield return null;
                 while (!letters[currentLetDis].Equals(letter))
                 {
-                    handleLetUp();
+                    letUp.OnInteract();
+                    yield return new WaitForSeconds(0.15f);
                 }
                 while (!numbers[currentNumDis].Equals(number))
                 {
-                    handleNumUp();
+                    numUp.OnInteract();
+                    yield return new WaitForSeconds(0.15f);
                 }
                 trySubmit();
             } else
             {
                 yield return "sendtochat Can't submit " + letter + number;
             }
-        } else if (cycle.IsMatch(input.ToLowerInvariant()))
+        } else if (split[0].Equals("CYCLE"))
         {
-            yield return new WaitForSeconds(0.25f);
-            handleLetUp();
-            yield return new WaitForSeconds(0.75f);
-            handleLetUp();
-            yield return new WaitForSeconds(0.75f);
-            handleLetUp();
-            yield return new WaitForSeconds(0.75f);
-            handleLetUp();
-            yield return new WaitForSeconds(0.75f);
-            handleLetUp();
-            yield return new WaitForSeconds(0.75f);
-            handleNumUp();
-            yield return new WaitForSeconds(0.75f);
-            handleNumUp();
-            yield return new WaitForSeconds(0.75f);
-            handleNumUp();
-            yield return new WaitForSeconds(0.75f);
-            handleNumUp();
-            yield return new WaitForSeconds(0.75f);
-            handleNumUp();
-
-        } else if (cycleSpec.IsMatch(input.ToLowerInvariant()))
-        {
-            if(input.ToLowerInvariant().Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries)[1].Equals("letters"))
+            if (split.Length == 1)
             {
+                yield return null;
                 yield return new WaitForSeconds(0.25f);
-                handleLetUp();
+                letUp.OnInteract();
                 yield return new WaitForSeconds(0.75f);
-                handleLetUp();
+                letUp.OnInteract();
                 yield return new WaitForSeconds(0.75f);
-                handleLetUp();
+                letUp.OnInteract();
                 yield return new WaitForSeconds(0.75f);
-                handleLetUp();
+                letUp.OnInteract();
                 yield return new WaitForSeconds(0.75f);
-                handleLetUp();
-            } else
+                letUp.OnInteract();
+                yield return new WaitForSeconds(0.75f);
+                numUp.OnInteract();
+                yield return new WaitForSeconds(0.75f);
+                numUp.OnInteract();
+                yield return new WaitForSeconds(0.75f);
+                numUp.OnInteract();
+                yield return new WaitForSeconds(0.75f);
+                numUp.OnInteract();
+                yield return new WaitForSeconds(0.75f);
+                numUp.OnInteract();
+            } else if(split.Length == 2)
             {
-                yield return new WaitForSeconds(0.25f);
-                handleNumUp();
-                yield return new WaitForSeconds(0.75f);
-                handleNumUp();
-                yield return new WaitForSeconds(0.75f);
-                handleNumUp();
-                yield return new WaitForSeconds(0.75f);
-                handleNumUp();
-                yield return new WaitForSeconds(0.75f);
-                handleNumUp();
+                switch (split[1])
+                {
+                    case "LETTERS":
+                        yield return null;
+                        yield return new WaitForSeconds(0.25f);
+                        letUp.OnInteract();
+                        yield return new WaitForSeconds(0.75f);
+                        letUp.OnInteract();
+                        yield return new WaitForSeconds(0.75f);
+                        letUp.OnInteract();
+                        yield return new WaitForSeconds(0.75f);
+                        letUp.OnInteract();
+                        yield return new WaitForSeconds(0.75f);
+                        letUp.OnInteract();
+                        break;
+                    case "NUMBERS":
+                        yield return null;
+                        yield return new WaitForSeconds(0.25f);
+                        numUp.OnInteract();
+                        yield return new WaitForSeconds(0.75f);
+                        numUp.OnInteract();
+                        yield return new WaitForSeconds(0.75f);
+                        numUp.OnInteract();
+                        yield return new WaitForSeconds(0.75f);
+                        numUp.OnInteract();
+                        yield return new WaitForSeconds(0.75f);
+                        numUp.OnInteract();
+                        break;
+                }
             }
+
         }
     }
 
