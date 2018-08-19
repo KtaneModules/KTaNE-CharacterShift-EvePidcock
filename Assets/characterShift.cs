@@ -176,6 +176,43 @@ public class characterShift : MonoBehaviour {
         StartCoroutine(MainSystem());
         Debug.LogFormat("[Character Shift #{0}] Static variables X = {1}. Y = {2}.", _moduleId, x, y);
         Debug.LogFormat("[Character Shift #{0}] The displayed letters are as follows: {1}, {2}, {3}, {4}. The displayed numbers are as follows: {5}, {6}, {7}, {8}.", _moduleId, letters[1], letters[2], letters[3], letters[4], numbers[1], numbers[2], numbers[3], numbers[4]);
+        logAnswers();
+    }
+
+    void logAnswers()
+    {
+        String combos = "";
+        bool first = true;
+        foreach(String letter in letters)
+        {
+            if (first)
+            {
+                first = false;
+                continue;
+            }
+            bool firstNumber = true;
+            foreach(String number in numbers)
+            {
+                if (firstNumber)
+                {
+                    firstNumber = false;
+                    continue;
+                }
+                int ansInt = functions(Int32.Parse(number), getNumber(letter));
+                while (ansInt > 26)
+                {
+                    ansInt -= 26;
+                }
+                while (ansInt < 1)
+                {
+                    ansInt += 26;
+                }
+                String ans = getLetter(ansInt);
+                combos += " -- Letter for combonation " + letter + number + ": " + ans + ". Possible solution? " + (serialLetters.Contains(ans[0]) ? "YES" : "NO");
+            }
+        }
+        Debug.LogFormat("[Character Shift #{0}] " + combos, _moduleId);
+
     }
 
     void DisplayScreen()
@@ -195,16 +232,16 @@ public class characterShift : MonoBehaviour {
                 garInt -= 3;
                 break;
             case 1:
-                garInt =- x;
+                garInt -= x;
                 break;
             case 2:
-                garInt =+ y;
+                garInt += y;
                 break;
             case 3:
                 garInt = (garInt - y) + info.GetPortPlateCount();
                 break;
             case 4:
-                garInt =- info.GetSerialNumberNumbers().ToArray().Last();
+                garInt -= info.GetSerialNumberNumbers().ToArray().Last();
                 break;
             case 5:
                 garInt = (garInt + info.GetBatteryHolderCount()) - (x * 2);
