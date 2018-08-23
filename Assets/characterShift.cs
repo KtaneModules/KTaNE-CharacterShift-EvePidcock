@@ -15,9 +15,10 @@ public class characterShift : MonoBehaviour {
     public KMBombModule module;
     public KMBombInfo info;
     private int _moduleId = 0;
-    private bool _isSolved = false, _lightsOn = false;
+    private bool _isSolved = false;
 
     private bool TwitchPlaysActive = false;
+    private bool ZenModeActive = false;
 
     public KMSelectable numUp, numDown, letUp, letDown;
 
@@ -36,13 +37,17 @@ public class characterShift : MonoBehaviour {
     void Start()
     {
         _moduleId = _moduleIdCounter++;
-        module.OnActivate += Activate;
-    }
 
-    void Activate()
-    {
-        Init();
-        _lightsOn = true;
+        serialLetters = info.GetSerialNumberLetters().ToArray();
+        x = info.GetPortCount() + serialLetters.Count();
+        y = info.GetIndicators().Count() + info.GetSerialNumberNumbers().Count();
+
+        SetupLettersNumbers();
+        DisplayScreen();
+        StartCoroutine(MainSystem());
+        Debug.LogFormat("[Character Shift #{0}] Static variables X = {1}. Y = {2}.", _moduleId, x, y);
+        Debug.LogFormat("[Character Shift #{0}] The displayed letters are as follows: {1}, {2}, {3}, {4}. The displayed numbers are as follows: {5}, {6}, {7}, {8}.", _moduleId, letters[1], letters[2], letters[3], letters[4], numbers[1], numbers[2], numbers[3], numbers[4]);
+        logAnswers();
     }
 
     private void Awake()
@@ -72,7 +77,7 @@ public class characterShift : MonoBehaviour {
     void handleNumUp()
     {
         newAudio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, numUp.transform);
-        if (!_lightsOn || _isSolved) return;
+        if (_isSolved) return;
         currentNumDis++;
         if(currentNumDis == 5)
         {
@@ -86,7 +91,7 @@ public class characterShift : MonoBehaviour {
     void handleNumDown()
     {
         newAudio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, numDown.transform);
-        if (!_lightsOn || _isSolved) return;
+        if (_isSolved) return;
         currentNumDis--;
         if (currentNumDis == -1)
         {
@@ -98,7 +103,7 @@ public class characterShift : MonoBehaviour {
     void handleLetUp()
     {
         newAudio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, letUp.transform);
-        if (!_lightsOn || _isSolved) return;
+        if (_isSolved) return;
         currentLetDis++;
         if (currentLetDis == 5)
         {
@@ -110,7 +115,7 @@ public class characterShift : MonoBehaviour {
     void handleLetDown()
     {
         newAudio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, letDown.transform);
-        if (!_lightsOn || _isSolved) return;
+        if (_isSolved) return;
         currentLetDis--;
         if (currentLetDis == -1)
         {
@@ -165,33 +170,12 @@ public class characterShift : MonoBehaviour {
         }
     }
 
-    void Init()
-    {
-        serialLetters = info.GetSerialNumberLetters().ToArray();
-        x = info.GetPortCount() + serialLetters.Count();
-        y = info.GetIndicators().Count() + info.GetSerialNumberNumbers().Count();
-
-        SetupLettersNumbers();
-        DisplayScreen();
-        StartCoroutine(MainSystem());
-        Debug.LogFormat("[Character Shift #{0}] Static variables X = {1}. Y = {2}.", _moduleId, x, y);
-        Debug.LogFormat("[Character Shift #{0}] The displayed letters are as follows: {1}, {2}, {3}, {4}. The displayed numbers are as follows: {5}, {6}, {7}, {8}.", _moduleId, letters[1], letters[2], letters[3], letters[4], numbers[1], numbers[2], numbers[3], numbers[4]);
-        logAnswers();
-    }
-
     void logAnswers()
     {
-        String combos = "";
-        bool first = true;
-        foreach(String letter in letters)
+        foreach (String letter in letters)
         {
-            if (first)
-            {
-                first = false;
-                continue;
-            }
             bool firstNumber = true;
-            foreach(String number in numbers)
+            foreach (String number in numbers)
             {
                 if (firstNumber)
                 {
@@ -208,11 +192,9 @@ public class characterShift : MonoBehaviour {
                     ansInt += 26;
                 }
                 String ans = getLetter(ansInt);
-                combos += " -- Letter for combonation " + letter + number + ": " + ans + ". Possible solution? " + (serialLetters.Contains(ans[0]) ? "YES" : "NO");
+                Debug.LogFormat("[Character Shift #{0}] {1}{2} would give you {3}, which would be {4}.", _moduleId, letter, number, ans, serialLetters.Contains(ans[0]) ? "CORRECT" : "WRONG");
             }
         }
-        Debug.LogFormat("[Character Shift #{0}] " + combos, _moduleId);
-
     }
 
     void DisplayScreen()
@@ -587,97 +569,78 @@ public class characterShift : MonoBehaviour {
         LED.material = LEDOff;   
     }
 #pragma warning disable 414
-
-    private string TwitchHelpMessage = "Submit A4 with !{0} submit A4, cycle through the numbers and letters with !{0} cycle, or just one with !{0} cycle letters or !{0} cycle numbers.";
-
+    private readonly string TwitchHelpMessage = "Submit A4 with “!{0} submit A4”, cycle through the numbers and letters with “!{0} cycle”, or just one with “!{0} cycle letters” or “!{0} cycle numbers”.";
 #pragma warning restore 414
+
     IEnumerator ProcessTwitchCommand(string input)
     {
-        string[] split = input.ToUpperInvariant().Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries);
-        if (split[0].Equals("SUBMIT"))
+        string[] split = input.ToLowerInvariant().Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries);
+        if (split[0].Equals("submit"))
         {
-            if(split.Length != 2) { yield break; }
-            if(split[1].Length != 2) { yield break; }
+            if (split.Length != 2) { yield break; }
+            if (split[1].Length != 2) { yield break; }
             string submit = split[1];
-            string letter = submit.ToCharArray()[0].ToString();
-            string number = submit.ToCharArray()[1].ToString();
-            if (letters.Contains(letter) && numbers.Contains(number))
+            string letter = submit[0].ToString();
+            string number = submit[1].ToString();
+            yield return null;
+            var doNotStartAt = ZenModeActive ? new[] { 9, 0, 1 } : new[] { 1, 2, 3 };
+            yield return new WaitUntil(() => !doNotStartAt.Contains(((int) info.GetTime()) % 10));
+            for (int i = 0; i < letters.Length && !letters[currentLetDis].Equals(letter, StringComparison.InvariantCultureIgnoreCase); i++)
             {
-                yield return null;
-                while (!letters[currentLetDis].Equals(letter))
+                letUp.OnInteract();
+                yield return new WaitForSeconds(0.15f);
+            }
+            for (int i = 0; i < numbers.Length && !numbers[currentNumDis].Equals(number); i++)
+            {
+                numUp.OnInteract();
+                yield return new WaitForSeconds(0.15f);
+            }
+
+            // Did we find the combination?
+            if (!letters[currentLetDis].Equals(letter, StringComparison.InvariantCultureIgnoreCase) || !numbers[currentNumDis].Equals(number))
+            {
+                yield return string.Format("sendtochat The combination {0}{1} isn’t there.", letter, number);
+
+                // Nope. Set it back to */*
+                for (int i = 0; i < letters.Length && !letters[currentLetDis].Equals("*"); i++)
                 {
                     letUp.OnInteract();
                     yield return new WaitForSeconds(0.15f);
                 }
-                while (!numbers[currentNumDis].Equals(number))
+                for (int i = 0; i < numbers.Length && !numbers[currentNumDis].Equals("*"); i++)
                 {
                     numUp.OnInteract();
                     yield return new WaitForSeconds(0.15f);
                 }
-                trySubmit();
-            } else
-            {
-                yield return "sendtochat Can't submit " + letter + number;
             }
-        } else if (split[0].Equals("CYCLE"))
+        }
+        else if (split[0].Equals("cycle"))
         {
-            if (split.Length == 1)
+            var startAt = ZenModeActive ? new[] { 2, 3, 4, 5, 6 } : new[] { 0, 9, 8, 7, 6 };
+
+            if (split.Length == 1 || (split.Length == 2 && (split[1] == "letters" || split[1] == "numbers")))
             {
                 yield return null;
-                yield return new WaitForSeconds(0.25f);
-                letUp.OnInteract();
-                yield return new WaitForSeconds(0.75f);
-                letUp.OnInteract();
-                yield return new WaitForSeconds(0.75f);
-                letUp.OnInteract();
-                yield return new WaitForSeconds(0.75f);
-                letUp.OnInteract();
-                yield return new WaitForSeconds(0.75f);
-                letUp.OnInteract();
-                yield return new WaitForSeconds(0.75f);
-                numUp.OnInteract();
-                yield return new WaitForSeconds(0.75f);
-                numUp.OnInteract();
-                yield return new WaitForSeconds(0.75f);
-                numUp.OnInteract();
-                yield return new WaitForSeconds(0.75f);
-                numUp.OnInteract();
-                yield return new WaitForSeconds(0.75f);
-                numUp.OnInteract();
-            } else if(split.Length == 2)
-            {
-                switch (split[1])
+
+                if (split.Length == 1 || (split.Length == 2 && split[1] == "letters"))
                 {
-                    case "LETTERS":
-                        yield return null;
-                        yield return new WaitForSeconds(0.25f);
+                    yield return new WaitUntil(() => startAt.Contains(((int) info.GetTime()) % 10));
+                    for (int i = 0; i < 5; i++)
+                    {
                         letUp.OnInteract();
                         yield return new WaitForSeconds(0.75f);
-                        letUp.OnInteract();
-                        yield return new WaitForSeconds(0.75f);
-                        letUp.OnInteract();
-                        yield return new WaitForSeconds(0.75f);
-                        letUp.OnInteract();
-                        yield return new WaitForSeconds(0.75f);
-                        letUp.OnInteract();
-                        break;
-                    case "NUMBERS":
-                        yield return null;
-                        yield return new WaitForSeconds(0.25f);
+                    }
+                }
+                if (split.Length == 1 || (split.Length == 2 && split[1] == "numbers"))
+                {
+                    yield return new WaitUntil(() => startAt.Contains(((int) info.GetTime()) % 10));
+                    for (int i = 0; i < 5; i++)
+                    {
                         numUp.OnInteract();
                         yield return new WaitForSeconds(0.75f);
-                        numUp.OnInteract();
-                        yield return new WaitForSeconds(0.75f);
-                        numUp.OnInteract();
-                        yield return new WaitForSeconds(0.75f);
-                        numUp.OnInteract();
-                        yield return new WaitForSeconds(0.75f);
-                        numUp.OnInteract();
-                        break;
+                    }
                 }
             }
-
         }
     }
-
 }
