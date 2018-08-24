@@ -17,7 +17,6 @@ public class characterShift : MonoBehaviour {
     private int _moduleId = 0;
     private bool _isSolved = false;
 
-    private bool TwitchPlaysActive = false;
     private bool ZenModeActive = false;
 
     public KMSelectable numUp, numDown, letUp, letDown;
@@ -487,11 +486,11 @@ public class characterShift : MonoBehaviour {
         bool submit = false;
         yield return new WaitForSeconds(0.2f);
         Debug.LogFormat("[Character Shift #{0}] Main Coroutine started.", _moduleId);
-        while (!_isSolved && !TwitchPlaysActive)
+        while (!_isSolved)
         {
             yield return new WaitForSeconds(0.1f);
             int last = (int)(info.GetTime() % 10);
-            if(last == 3 && !_isSolved)
+            if(last == 3 && !_isSolved && !ZenModeActive)
             {
                 submit = false;
                 switch (info.GetStrikes())
@@ -553,15 +552,81 @@ public class characterShift : MonoBehaviour {
                         break;
 
                 }
-            } else if(last == 1)
+            } else if (last == 9 && !_isSolved && ZenModeActive)
             {
-                if ((currentLetDis != 0 || currentNumDis != 0 )&& !_isSolved && !submit)
+                submit = false;
+                switch (info.GetStrikes())
+                {
+                    case 0:
+                        LED.material = LEDOn;
+                        yield return new WaitForSeconds(0.25f);
+                        LED.material = LEDOff;
+                        yield return new WaitForSeconds(0.25f);
+                        LED.material = LEDOn;
+                        yield return new WaitForSeconds(0.25f);
+                        LED.material = LEDOff;
+                        yield return new WaitForSeconds(0.25f);
+                        LED.material = LEDOn;
+                        break;
+                    case 1:
+                        LED.material = LEDOn;
+                        yield return new WaitForSeconds(0.25f / 1.25f);
+                        LED.material = LEDOff;
+                        yield return new WaitForSeconds(0.25f / 1.25f);
+                        LED.material = LEDOn;
+                        yield return new WaitForSeconds(0.25f / 1.25f);
+                        LED.material = LEDOff;
+                        yield return new WaitForSeconds(0.25f / 1.25f);
+                        LED.material = LEDOn;
+                        break;
+                    case 2:
+                        LED.material = LEDOn;
+                        yield return new WaitForSeconds(0.25f / 1.5f);
+                        LED.material = LEDOff;
+                        yield return new WaitForSeconds(0.25f / 1.5f);
+                        LED.material = LEDOn;
+                        yield return new WaitForSeconds(0.25f / 1.5f);
+                        LED.material = LEDOff;
+                        yield return new WaitForSeconds(0.25f / 1.5f);
+                        LED.material = LEDOn;
+                        break;
+                    case 3:
+                        LED.material = LEDOn;
+                        yield return new WaitForSeconds(0.25f / 1.75f);
+                        LED.material = LEDOff;
+                        yield return new WaitForSeconds(0.25f / 1.75f);
+                        LED.material = LEDOn;
+                        yield return new WaitForSeconds(0.25f / 1.75f);
+                        LED.material = LEDOff;
+                        yield return new WaitForSeconds(0.25f / 1.75f);
+                        LED.material = LEDOn;
+                        break;
+                    default:
+                        LED.material = LEDOn;
+                        yield return new WaitForSeconds(0.25f / 2f);
+                        LED.material = LEDOff;
+                        yield return new WaitForSeconds(0.25f / 2f);
+                        LED.material = LEDOn;
+                        yield return new WaitForSeconds(0.25f / 2f);
+                        LED.material = LEDOff;
+                        yield return new WaitForSeconds(0.25f / 2f);
+                        LED.material = LEDOn;
+                        break;
+
+                }
+            }
+            else if(last == 1)
+            {
+                if ((currentLetDis != 0 || currentNumDis != 0 ) && !_isSolved && !submit)
                 {
                     submit = true;
                     trySubmit();
                 }
                 
-            } else if(last == 0 || last == 9)
+            } else if((last == 0 || last == 9) && !ZenModeActive)
+            {
+                LED.material = LEDOff;
+            } else if((last==2 || last==3) && ZenModeActive)
             {
                 LED.material = LEDOff;
             }
