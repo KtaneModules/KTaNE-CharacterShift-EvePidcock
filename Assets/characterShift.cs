@@ -14,8 +14,14 @@ public class characterShift : MonoBehaviour {
     public KMAudio newAudio;
     public KMBombModule module;
     public KMBombInfo info;
+    public KMRuleSeedable RuleSeedable;
     private int _moduleId = 0;
     private bool _isSolved = false;
+
+    private int[] usableNumbers = new int[] { 1, 1, 2, 2, 3, 3, 4, 5, 6 };
+    private bool[] addFunc = new bool[] { true, true, false, true, false, true, false, true, true, true, false, true, true, false, true, true, true }; //true = add, false = subtract
+    private int[] stopNumbers = new int[] { 1, 0, 2, 3, 4, 5, 6, 7, 8, 9 };
+    private int stopNumber;
 
     private bool ZenModeActive = false;
 
@@ -33,6 +39,17 @@ public class characterShift : MonoBehaviour {
 
     private Char[] serialLetters;
 
+    int math(int var1, int var2, bool add)
+    {
+        if(add)
+        {
+            return var1 + var2;
+        } else
+        {
+            return var1 - var2;
+        }
+    }
+
     void Start()
     {
         _moduleId = _moduleIdCounter++;
@@ -41,12 +58,30 @@ public class characterShift : MonoBehaviour {
         x = info.GetPortCount() + serialLetters.Count();
         y = info.GetIndicators().Count() + info.GetSerialNumberNumbers().Count();
 
+        SetupRuleSeed();
+
         SetupLettersNumbers();
         DisplayScreen();
         StartCoroutine(MainSystem());
         Debug.LogFormat("[Character Shift #{0}] Static variables X = {1}. Y = {2}.", _moduleId, x, y);
         Debug.LogFormat("[Character Shift #{0}] The displayed letters are as follows: {1}, {2}, {3}, {4}. The displayed numbers are as follows: {5}, {6}, {7}, {8}.", _moduleId, letters[1], letters[2], letters[3], letters[4], numbers[1], numbers[2], numbers[3], numbers[4]);
         logAnswers();
+    }
+
+    void SetupRuleSeed()
+    {
+        var rnd = RuleSeedable.GetRNG();
+        if (rnd.Seed == 1)
+        {
+            stopNumber = stopNumbers[0];
+            return;
+        } else
+        {
+            usableNumbers.Shuffle(rnd);
+            addFunc.Shuffle(rnd);
+            stopNumbers.Shuffle(rnd);
+            stopNumber = stopNumbers[0];
+        }
     }
 
     private void Awake()
@@ -171,8 +206,14 @@ public class characterShift : MonoBehaviour {
 
     void logAnswers()
     {
+        bool firstLetter = true;
         foreach (String letter in letters)
         {
+            if (firstLetter)
+            {
+                firstLetter = false;
+                continue;
+            }
             bool firstNumber = true;
             foreach (String number in numbers)
             {
@@ -210,56 +251,56 @@ public class characterShift : MonoBehaviour {
         switch (op)
         {
             case 0:
-                garInt -= 3;
+                garInt = math(garInt, usableNumbers[4], !addFunc[0]);
                 break;
             case 1:
-                garInt -= x;
+                garInt = math(garInt, x, !addFunc[1]);
                 break;
             case 2:
-                garInt += y;
+                garInt = math(garInt, y, !addFunc[2]);
                 break;
             case 3:
-                garInt = (garInt - y) + info.GetPortPlateCount();
+                garInt = math(math(garInt, y, !addFunc[3]), info.GetPortPlateCount(), !addFunc[4]);
                 break;
             case 4:
-                garInt -= info.GetSerialNumberNumbers().ToArray().Last();
+                garInt = math(garInt, info.GetSerialNumberNumbers().ToArray().Last(), !addFunc[5]); 
                 break;
             case 5:
-                garInt = (garInt + info.GetBatteryHolderCount()) - (x * 2);
+                garInt = math(math(garInt, info.GetBatteryHolderCount(), !addFunc[6]), (x*usableNumbers[2]), !addFunc[7]);
                 break;
             case 6:
-                garInt = (garInt - info.GetOnIndicators().Count() - y) + info.GetOffIndicators().Count();
+                garInt = math(math(math(garInt, info.GetOnIndicators().Count(), !addFunc[8]), y, !addFunc[9]), info.GetOffIndicators().Count(), !addFunc[10]);
                 break;
             case 7:
                 if (info.IsIndicatorOn(KMBombInfoExtensions.KnownIndicatorLabel.SIG))
                 {
-                    garInt -= x;
+                    garInt = math(garInt, x, !addFunc[11]);
                 }
                 else
                 {
-                    garInt -= y;
+                    garInt = math(garInt, y, !addFunc[11]);
                 }
                 break;
             case 8:
-                garInt = (garInt - x - y) + info.GetIndicators().Count() - info.GetBatteryCount(KMBombInfoExtensions.KnownBatteryType.D);
+                garInt = math(math(math(math(garInt, x, !addFunc[12]), y, !addFunc[12]), info.GetIndicators().Count(), !addFunc[13]), info.GetBatteryCount(KMBombInfoExtensions.KnownBatteryType.D), !addFunc[14]);
                 break;
             case 9:
                 int z = garInt;
-                if (info.GetBatteryCount() > 3)
+                if (info.GetBatteryCount() > usableNumbers[5])
                 {
-                    z -= x;
+                    z = math(z, x, !addFunc[15]);
                 }
                 else
                 {
-                    z += x;
+                    z = math(z, x, addFunc[15]);
                 }
-                if (info.GetIndicators().Count() > 3)
+                if (info.GetIndicators().Count() > usableNumbers[4])
                 {
-                    z -= y;
+                    z = math(z, y, !addFunc[16]);
                 }
                 else
                 {
-                    z += y;
+                    z = math(z, y, addFunc[16]);
                 }
                 garInt = z;
                 break;
@@ -315,44 +356,47 @@ public class characterShift : MonoBehaviour {
         switch (c)
         {
             case 0:
-                return let + 3;
+                return math(let, usableNumbers[4], addFunc[0]);
             case 1:
-                return let + x;
+                return math(let, x, addFunc[1]);
             case 2:
-                return let - y;
+                return math(let, y, addFunc[2]);
             case 3:
-                return (let + y) - info.GetPortPlateCount();
+                return math(math(let, y, addFunc[3]), info.GetPortPlateCount(), addFunc[4]);
             case 4:
-                return let + info.GetSerialNumberNumbers().ToArray().Last();
+                return math(let, info.GetSerialNumberNumbers().ToArray().Last(), addFunc[5]);
             case 5:
-                return (let - info.GetBatteryHolderCount()) + (x * 2);
+                return math(math(let, info.GetBatteryHolderCount(), addFunc[6]), (x * usableNumbers[2]), addFunc[7]);
             case 6:
-                return (let + info.GetOnIndicators().Count() + y) - info.GetOffIndicators().Count();
+                return math(math(math(let, info.GetOnIndicators().Count(), addFunc[8]), y, addFunc[9]), info.GetOffIndicators().Count(), addFunc[10]);
             case 7:
                 if (info.IsIndicatorOn(KMBombInfoExtensions.KnownIndicatorLabel.SIG))
                 {
-                    return let + x;
-                } else
+                    return math(let, x, addFunc[11]);
+                }
+                else
                 {
-                    return let + y;
+                    return math(let, y, addFunc[11]);
                 }
             case 8:
-                return (let + x + y) - info.GetIndicators().Count() + info.GetBatteryCount(KMBombInfoExtensions.KnownBatteryType.D);
+                return math(math(math(math(let, x, addFunc[12]), y, addFunc[12]), info.GetIndicators().Count(), addFunc[13]), info.GetBatteryCount(KMBombInfoExtensions.KnownBatteryType.D), addFunc[14]);
             case 9:
-                int z = let; 
-                if(info.GetBatteryCount() > 3)
+                int z = let;
+                if (info.GetBatteryCount() > usableNumbers[5])
                 {
-                    z += x;
-                } else
-                {
-                    z -= x;
+                    z = math(z, x, addFunc[15]);
                 }
-                if(info.GetIndicators().Count() > 3)
+                else
                 {
-                    z += y;
-                } else
+                    z = math(z, x, !addFunc[15]);
+                }
+                if (info.GetIndicators().Count() > usableNumbers[4])
                 {
-                    z -= y;
+                    z = math(z, y, addFunc[16]);
+                }
+                else
+                {
+                    z = math(z, y, !addFunc[16]);
                 }
                 return z;
             default:
@@ -486,11 +530,13 @@ public class characterShift : MonoBehaviour {
         bool submit = false;
         yield return new WaitForSeconds(0.2f);
         Debug.LogFormat("[Character Shift #{0}] Main Coroutine started.", _moduleId);
+        int stop = 1;
         while (!_isSolved)
         {
+            stop = stopNumber;
             yield return new WaitForSeconds(0.1f);
             int last = (int)(info.GetTime() % 10);
-            if(last == 3 && !_isSolved && !ZenModeActive)
+            if(last == (stop+2)%10 && !_isSolved && !ZenModeActive)
             {
                 submit = false;
                 switch (info.GetStrikes())
@@ -552,7 +598,7 @@ public class characterShift : MonoBehaviour {
                         break;
 
                 }
-            } else if (last == 9 && !_isSolved && ZenModeActive)
+            } else if (last == (stop + 8) % 10 && !_isSolved && ZenModeActive)
             {
                 submit = false;
                 switch (info.GetStrikes())
@@ -615,7 +661,7 @@ public class characterShift : MonoBehaviour {
 
                 }
             }
-            else if(last == 1)
+            else if(last == (stop) % 10)
             {
                 if ((currentLetDis != 0 || currentNumDis != 0 ) && !_isSolved && !submit)
                 {
@@ -623,10 +669,10 @@ public class characterShift : MonoBehaviour {
                     trySubmit();
                 }
                 
-            } else if((last == 0 || last == 9) && !ZenModeActive)
+            } else if((last == (stop + 9) % 10 || last == (stop + 8) % 10) && !ZenModeActive)
             {
                 LED.material = LEDOff;
-            } else if((last==2 || last==3) && ZenModeActive)
+            } else if((last== (stop + 1) % 10 || last== (stop + 2) % 10) && ZenModeActive)
             {
                 LED.material = LEDOff;
             }
@@ -648,7 +694,7 @@ public class characterShift : MonoBehaviour {
             string letter = submit[0].ToString();
             string number = submit[1].ToString();
             yield return null;
-            var doNotStartAt = ZenModeActive ? new[] { 9, 0, 1 } : new[] { 1, 2, 3 };
+            var doNotStartAt = ZenModeActive ? new[] { (stopNumber + 8) % 10, (stopNumber + 9) % 10, stopNumber } : new[] { stopNumber, (stopNumber + 1) % 10, (stopNumber + 2) % 10 };
             yield return new WaitUntil(() => !doNotStartAt.Contains(((int) info.GetTime()) % 10));
             for (int i = 0; i < letters.Length && !letters[currentLetDis].Equals(letter, StringComparison.InvariantCultureIgnoreCase); i++)
             {
@@ -681,7 +727,7 @@ public class characterShift : MonoBehaviour {
         }
         else if (split[0].Equals("cycle"))
         {
-            var startAt = ZenModeActive ? new[] { 2, 3, 4, 5, 6 } : new[] { 0, 9, 8, 7, 6 };
+            var startAt = ZenModeActive ? new[] { (stopNumber + 1) % 10, (stopNumber + 2) % 10, (stopNumber + 3) % 10, (stopNumber + 4) % 10, (stopNumber + 5) % 10 } : new[] { (stopNumber + 9) % 10, (stopNumber + 8) % 10, (stopNumber + 7) % 10, (stopNumber + 6) % 10, (stopNumber + 5) % 10 };
 
             if (split.Length == 1 || (split.Length == 2 && (split[1] == "letters" || split[1] == "numbers")))
             {
@@ -708,4 +754,34 @@ public class characterShift : MonoBehaviour {
             }
         }
     }
+}
+public static class Extensions
+{
+
+    // Fisher-Yates Shuffle
+
+    public static IList<T> Shuffle<T>(this IList<T> list, MonoRandom rnd)
+    {
+
+        int i = list.Count;
+
+        while (i > 1)
+        {
+
+            int index = rnd.Next(i);
+
+            i--;
+
+            T value = list[index];
+
+            list[index] = list[i];
+
+            list[i] = value;
+
+        }
+
+        return list;
+
+    }
+
 }
