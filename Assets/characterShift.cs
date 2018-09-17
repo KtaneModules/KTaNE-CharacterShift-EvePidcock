@@ -683,6 +683,30 @@ public class characterShift : MonoBehaviour {
     private readonly string TwitchHelpMessage = "Submit A4 with “!{0} submit A4”, cycle through the numbers and letters with “!{0} cycle”, or just one with “!{0} cycle letters” or “!{0} cycle numbers”.";
 #pragma warning restore 414
 
+    float timeLeftUntilNextStop()
+    {
+        var numStrikes = info.GetStrikes();
+        var timerSpeed =
+            numStrikes == 0 ? 1 :
+            numStrikes == 1 ? 1.25f :
+            numStrikes == 2 ? 1.5f :
+            numStrikes == 3 ? 1.75f : 2;
+
+        var curTime = info.GetTime() % 10;  // note: still a float
+        if (ZenModeActive)
+        {
+            if (stopNumber < curTime)
+                return (10 + stopNumber - curTime) / timerSpeed;
+            return (stopNumber - curTime) / timerSpeed;
+        }
+        else
+        {
+            if (curTime < (stopNumber + 1))
+                curTime += 10;
+            return (curTime - (stopNumber + 1)) / timerSpeed;
+        }
+    }
+
     IEnumerator ProcessTwitchCommand(string input)
     {
         string[] split = input.ToLowerInvariant().Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries);
@@ -694,8 +718,7 @@ public class characterShift : MonoBehaviour {
             string letter = submit[0].ToString();
             string number = submit[1].ToString();
             yield return null;
-            var doNotStartAt = ZenModeActive ? new[] { (stopNumber + 8) % 10, (stopNumber + 9) % 10, stopNumber } : new[] { stopNumber, (stopNumber + 1) % 10, (stopNumber + 2) % 10 };
-            yield return new WaitUntil(() => !doNotStartAt.Contains(((int) info.GetTime()) % 10));
+            yield return new WaitUntil(() => timeLeftUntilNextStop() > 3 && (int) info.GetTime() % 10 != stopNumber);
             for (int i = 0; i < letters.Length && !letters[currentLetDis].Equals(letter, StringComparison.InvariantCultureIgnoreCase); i++)
             {
                 letUp.OnInteract();
@@ -727,15 +750,13 @@ public class characterShift : MonoBehaviour {
         }
         else if (split[0].Equals("cycle"))
         {
-            var startAt = ZenModeActive ? new[] { (stopNumber + 1) % 10, (stopNumber + 2) % 10, (stopNumber + 3) % 10, (stopNumber + 4) % 10, (stopNumber + 5) % 10 } : new[] { (stopNumber + 9) % 10, (stopNumber + 8) % 10, (stopNumber + 7) % 10, (stopNumber + 6) % 10, (stopNumber + 5) % 10 };
-
             if (split.Length == 1 || (split.Length == 2 && (split[1] == "letters" || split[1] == "numbers")))
             {
                 yield return null;
 
                 if (split.Length == 1 || (split.Length == 2 && split[1] == "letters"))
                 {
-                    yield return new WaitUntil(() => startAt.Contains(((int) info.GetTime()) % 10));
+                    yield return new WaitUntil(() => timeLeftUntilNextStop() > .75 * 5 && (int) info.GetTime() % 10 != stopNumber);
                     for (int i = 0; i < 5; i++)
                     {
                         letUp.OnInteract();
@@ -744,7 +765,7 @@ public class characterShift : MonoBehaviour {
                 }
                 if (split.Length == 1 || (split.Length == 2 && split[1] == "numbers"))
                 {
-                    yield return new WaitUntil(() => startAt.Contains(((int) info.GetTime()) % 10));
+                    yield return new WaitUntil(() => timeLeftUntilNextStop() > .75 * 5 && (int) info.GetTime() % 10 != stopNumber);
                     for (int i = 0; i < 5; i++)
                     {
                         numUp.OnInteract();
@@ -755,33 +776,22 @@ public class characterShift : MonoBehaviour {
         }
     }
 }
+
 public static class Extensions
 {
-
     // Fisher-Yates Shuffle
-
     public static IList<T> Shuffle<T>(this IList<T> list, MonoRandom rnd)
     {
-
         int i = list.Count;
-
         while (i > 1)
         {
-
             int index = rnd.Next(i);
-
             i--;
-
             T value = list[index];
-
             list[index] = list[i];
-
             list[i] = value;
-
         }
 
         return list;
-
     }
-
 }
