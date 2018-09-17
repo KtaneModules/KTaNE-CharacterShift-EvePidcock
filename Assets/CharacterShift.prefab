@@ -1237,7 +1237,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ModuleType: characterShift
   ModuleDisplayName: Character Shift
-  RequiresTimerVisibility: 0
+  RequiresTimerVisibility: 1
 --- !u!114 &114567857909044426
 MonoBehaviour:
   m_ObjectHideFlags: 1
