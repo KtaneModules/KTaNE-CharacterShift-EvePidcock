@@ -718,6 +718,8 @@ public class characterShift : MonoBehaviour {
             string letter = submit[0].ToString();
             string number = submit[1].ToString();
             yield return null;
+            yield return "solve";
+            yield return "strike";
             yield return new WaitUntil(() => timeLeftUntilNextStop() > 3 && (int) info.GetTime() % 10 != stopNumber);
             for (int i = 0; i < letters.Length && !letters[currentLetDis].Equals(letter, StringComparison.InvariantCultureIgnoreCase); i++)
             {
